@@ -1,25 +1,41 @@
 #include <iostream>
 #include <dirent.h>
+#include <vector>
+#include <unistd.h>
+#include <string>
+#include <cstring>
 
-
-int get_dirs(const char *dir_name);
+std::vector<std::string> get_dirs(const char *dir_name);
 
 int main() {
-    get_dirs("/proc");
+    auto v = get_dirs("/proc");
+    for (int i = 0; i < v.size(); ++i) {
+        if (i == v.size()-1) {
+            std::cout << v[i] << "." << std::endl;
+            break;
+        }
+        std::cout << v[i] << ", ";
+    }
     return 0;
 }
 
-int get_dirs(const char *dir_name)
+std::vector<std::string> get_dirs(const char *dir_name)
 {
     DIR *dir;
-    struct dirent *ent;
+    std::string dir_path;
+    std::vector<std::string> directories_names;
+    dirent *ent;
     if ((dir = opendir(dir_name)) != NULL) {
         while ((ent = readdir(dir)) != NULL) {
-            std::cout << ent->d_name << '\n';
+            dir_path = "/proc/" + std::string(ent->d_name) + "/cmdline";
+            if (access(dir_path.c_str(), R_OK) != -1)
+                directories_names.push_back(std::string(dir_path));
+
         }
         closedir(dir);
     } else {
         perror("");
-        return EXIT_FAILURE;
+        std::cerr << "Error reading from directory/file: " << EXIT_FAILURE << std::endl;
     }
+    return  directories_names;
 }
