@@ -31,19 +31,30 @@ namespace linux_process_viewer {
         return std::any_of(s.begin(), s.end(), ::isdigit);
     }
 
-    void DirectoryParser::process_files(std::vector<std::string> &filepaths)
+    Process_manager DirectoryParser::process_files(std::vector<std::string> &filepaths)
     {
         std::ifstream file_to_process;
         std::string line;
         for (int i = 0; i < filepaths.size(); ++i) {
-            file_to_process.open(filepaths[i]);
-            if (file_to_process.is_open()) {
-                while (getline(file_to_process, line))
-                    std::cout << line << '\n';
-                file_to_process.close();
-            } else
+            if (files_names_match(filepaths[i])) {
+                file_to_process.open(filepaths[i]);
+                if (file_to_process.is_open()) {
+                    while (getline(file_to_process, line)) {
+                            if(filepaths[i] == "cmdline")
+                                //memmory_us_percent =
+                    }
+
+                    file_to_process.close();
+                }
+            }
+             else
                 std::cerr << "Unable to open file";
         }
+    }
+
+    bool DirectoryParser::files_names_match(const std::string &filename)
+    {
+        return std::any_of(filename.begin(), filename.end(), filename);
     }
 
     DirectoryParser::~DirectoryParser()
