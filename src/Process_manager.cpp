@@ -88,10 +88,30 @@ namespace linux_process_viewer {
         cmd_file_stream = fopen(file_path, "r");
 
         if (cmd_file_stream != nullptr) {
-            fscanf(cmd_file_stream, "%*d %*s %s %*d", state);
+            fscanf(cmd_file_stream, "%*ld %*s %s %*ld", state);
         }
+
         fclose(cmd_file_stream);
         return state;
+    }
+
+    long unsigned int Process_manager::get_mem_used(unsigned int process_id)
+    {
+        long unsigned int mem;
+        std::string file_name(BASE_PROC_PATH);
+        file_name += std::to_string(process_id) + BASE_MEM_FILE;
+        FILE *mem_info = fopen(file_name.c_str(), "r");
+
+        if (mem_info != nullptr) {
+            fscanf(mem_info, "%lu %*lu", &mem);
+        }
+        fclose(mem_info);
+        return mem;
+    }
+
+    unsigned int Process_manager::convert_to_Kb(long unsigned bytes)
+    {
+        return bytes / 1024;
     }
 }
 

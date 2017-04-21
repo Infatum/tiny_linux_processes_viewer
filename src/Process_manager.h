@@ -31,6 +31,8 @@ namespace linux_process_viewer {
         double calculateTotalCpu_usage();
         double getProcess_CPU_usage(unsigned int process_id);
         char* get_process_Status(unsigned int process_id);
+        unsigned long get_mem_used(unsigned int process_id);
+        unsigned int convert_to_Kb(unsigned long bytes);
     };
 }
 

@@ -39,7 +39,8 @@ namespace linux_process_viewer {
         char state[2];
 
         for (int i = 0; i < _pids.size(); ++i) {
-            std::cout << "\nProcess:" << _pids[i] << "\tState: " << processManager.get_process_Status(_pids[i]);
+            strcpy(state, processManager.get_process_Status(_pids[i]));
+            std::cout << "\nProcess: \tPID:" << _pids[i] << "\t\tState: " << state << std::endl;
         }
         std::cout << std::endl;
         std::cout << "\nTottal CPU usage: " << processManager.calculateTotalCpu_usage() << std::endl;
