@@ -15,6 +15,7 @@
 #include <fstream>
 #include <regex>
 #include "Process_manager.h"
+#include "PID_Table.h"
 
 namespace linux_process_viewer {
     class DirectoryParser {
@@ -29,7 +30,7 @@ namespace linux_process_viewer {
                         std::vector<std::string> fn = {"cmdline", "stat", "statm", "cpuset"})
                 : _root_dir_name(root_dir_name), _files_to_process(fn) {}
         std::vector<std::string> get_directories_names();
-        Process_manager process_files(std::vector<std::string> &dir_names);
+        PID_Table process_files(std::vector<std::string> &dir_paths);
         virtual ~DirectoryParser();
     };
 }
