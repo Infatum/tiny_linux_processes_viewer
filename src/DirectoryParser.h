@@ -22,6 +22,7 @@ namespace linux_process_viewer {
     private:
         std::string _root_dir_name;
         std::vector<std::string> _files_to_process;
+        std::vector<unsigned int> _pids;
         bool has_any_digits(const std::string &s);
         bool files_names_match(const std::string &filename);
 

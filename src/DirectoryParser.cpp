@@ -14,8 +14,10 @@ namespace linux_process_viewer {
         if ((dir = opendir(_root_dir_name.c_str())) != NULL) {
             while ((ent = readdir(dir)) != NULL) {
                 dir_path = "/proc/" + std::string(ent->d_name) + '/';
-                if (access(dir_path.c_str(), R_OK) != -1 && has_any_digits(dir_path))
+                if (access(dir_path.c_str(), R_OK) != -1 && has_any_digits(dir_path)) {
                     directories_names.push_back(std::string(dir_path));
+                    _pids.push_back(atoi(ent->d_name));
+                }
 
             }
             closedir(dir);
@@ -33,27 +35,15 @@ namespace linux_process_viewer {
 
     PID_Table DirectoryParser::process_files(std::vector<std::string> &dir_paths)
     {
-        std::ifstream file_to_process;
-        std::string line;
-        std::string filename;
-        Process_manager proc_man;
-        for (int i = 0; i < dir_paths.size(); ++i) {
-            for (int j = 0; j < _files_to_process.size(); ++j) {
-                filename = dir_paths[i] + _files_to_process[j];
-                file_to_process.open(filename);
-                if (file_to_process.is_open()) {
-                    while (getline(file_to_process, line)) {
-                        std::cout << line << '\n';
-                        file_to_process.close();
-                    }
+        Process_manager processManager;
+        char state[2];
 
-                } else
-                    std::cerr << "\nUnable to open file";
-            }
+        for (int i = 0; i < _pids.size(); ++i) {
+            std::cout << "\nProcess:" << _pids[i] << "\tState: " << processManager.get_process_Status(_pids[i]);
         }
-
-        std::cout << "\nTottal CPU usage: " << proc_man.calculateTotalCpu_usage() << std::endl;
-        std::cout << "\nProcess 9428 CPU usage: " << proc_man.getProcess_CPU_usage(9428) << std::endl;
+        std::cout << std::endl;
+        std::cout << "\nTottal CPU usage: " << processManager.calculateTotalCpu_usage() << std::endl;
+        std::cout << "\nProcess 9428 CPU usage: " << processManager.getProcess_CPU_usage(9428) << std::endl;
     }
 
 

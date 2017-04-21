@@ -3,6 +3,7 @@
 //
 
 #include "Process_manager.h"
+#include <iostream>
 
 namespace linux_process_viewer {
 
@@ -76,18 +77,21 @@ namespace linux_process_viewer {
     char* Process_manager::get_process_Status(unsigned int process_id)
     {
         char *state = new char[2];
-        char *file_path;
-        char *tmp_left_path_part;
+        std::string path_id_in_str = std::to_string(process_id);
+
+        char *file_path = new char[strlen(BASE_PROC_PATH) + strlen(path_id_in_str.c_str()) + strlen(BASE_CPU_FILE)];
+        strcpy(file_path, BASE_PROC_PATH); // copy /proc/
+        strcpy(&file_path[strlen(BASE_PROC_PATH)], path_id_in_str.c_str()); // add process id
+        strcpy(&file_path[strlen(BASE_PROC_PATH)+strlen(path_id_in_str.c_str())], BASE_CPU_FILE); // add filename
+
         FILE *cmd_file_stream;
-        tmp_left_path_part = strcat(BASE_PROC_PATH, std::to_string(process_id).c_str());
-        file_path = strcat(tmp_left_path_part, BASE_CPU_FILE);
-        free(tmp_left_path_part);
-        fopen(file_path, "r");
+        cmd_file_stream = fopen(file_path, "r");
 
         if (cmd_file_stream != nullptr) {
             fscanf(cmd_file_stream, "%*d %*s %s %*d", state);
         }
-        return  state;
+        fclose(cmd_file_stream);
+        return state;
     }
 }
 

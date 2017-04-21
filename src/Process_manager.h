@@ -25,12 +25,12 @@ namespace linux_process_viewer {
         static unsigned int _PID;
         static clock_t _lastCPU, _lastSysCPU, _lastUserCPU;
         void initialize_process_info(unsigned int pid);
-        char* get_process_Status(unsigned int process_id);
 
     public:
         Process_manager();
         double calculateTotalCpu_usage();
         double getProcess_CPU_usage(unsigned int process_id);
+        char* get_process_Status(unsigned int process_id);
     };
 }
 
