@@ -25,6 +25,7 @@ namespace linux_process_viewer {
         std::vector<unsigned int> _pids;
         bool has_any_digits(const std::string &s);
         bool files_names_match(const std::string &filename);
+        PID_Table *_processes_table = nullptr;
 
     public:
         DirectoryParser(const std::string &root_dir_name,

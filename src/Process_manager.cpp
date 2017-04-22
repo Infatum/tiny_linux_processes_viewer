@@ -11,6 +11,7 @@ namespace linux_process_viewer {
     unsigned long long Process_manager::_lastTotalUserLow;
     unsigned long long Process_manager::_lastTotalSys;
     unsigned long long Process_manager::_lastTotalIdle;
+    unsigned long long Process_manager::_physicallMemmoryCapacity;
     unsigned int Process_manager::_processorsCount;
     clock_t Process_manager::_lastCPU, Process_manager::_lastSysCPU, Process_manager::_lastUserCPU;
 
@@ -19,6 +20,9 @@ namespace linux_process_viewer {
         FILE *file = fopen("/proc/stat", "r");
         fscanf(file, "cpu %llu %llu %llu %llu", &_lastTotalUser, &_lastTotalUserLow, &_lastTotalSys, &_lastTotalIdle);
         fclose(file);
+        file = fopen("/proc/meminfo", "r");
+        if (file != nullptr)
+            fscanf(file, "%*s %lu %*s", &_physicallMemmoryCapacity);
     }
 
     double Process_manager::calculateTotalCpu_usage() {
@@ -96,15 +100,12 @@ namespace linux_process_viewer {
         return state;
     }
 
-    unsigned int Process_manager::calculate_mem_used_percent(long unsigned memmory)
+    unsigned int Process_manager::calculate_mem_used_percent(unsigned int process_id)
     {
-        double one_percent_kb;
-        unsigned long full_mem_capacity;
-        FILE *mem_info = fopen("/proc/meminfo", "r");
-        if (mem_info != nullptr)
-            fscanf(mem_info, "%s %d %s", full_mem_capacity);
-        one_percent_kb = full_mem_capacity / 100;
-        return memmory / one_percent_kb;
+        double one_percent_kb = 0;
+        one_percent_kb = _physicallMemmoryCapacity / 100;
+        auto tmp_p = get_mem_used(process_id) / one_percent_kb;
+        return round(tmp_p);
     }
 
     long unsigned int Process_manager::get_mem_used(unsigned int process_id)
@@ -131,6 +132,26 @@ namespace linux_process_viewer {
         return  Kb / 1024;
     }
 
+    std::string Process_manager::get_process_name(unsigned int process_id)
+    {
+        std::string filename(BASE_PROC_PATH);
+        filename += std::to_string(process_id) + BASE_CPU_FILE;
+        FILE *process_stat_f = fopen(filename.c_str(), "r");
+        char *name = new char[256];
+
+        if (process_stat_f != nullptr) {
+            fscanf(process_stat_f, "%*d %s", name);
+        }
+        std::string proc_name(name);
+        delete name;
+        return proc_name;
+    }
+
+    /**
+     * TODO: refresh procedure table instance each n seconds
+     * @param seconds
+     * @param proc_table
+     */
     void Process_manager::refresh(std::chrono::seconds &seconds, PID_Table &proc_table)
     {
         auto start = std::chrono::high_resolution_clock::now();

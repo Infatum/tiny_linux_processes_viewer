@@ -16,6 +16,7 @@
 #include <thread>
 #include <iostream>
 #include <chrono>
+#include <math.h>
 #include "Directories.h"
 #include "PID_Table.h"
 
@@ -28,6 +29,7 @@ namespace linux_process_viewer {
         static unsigned long long _lastTotalSys;
         static unsigned long long _lastTotalIdle;
         static unsigned int _processorsCount;
+        static unsigned long long _physicallMemmoryCapacity;
         static clock_t _lastCPU, _lastSysCPU, _lastUserCPU;
         void initialize_process_info(unsigned int pid);
         void refresh(std::chrono::seconds &seconds, PID_Table &);
@@ -40,7 +42,9 @@ namespace linux_process_viewer {
         unsigned long get_mem_used(unsigned int process_id);
         unsigned int convert_to_Kb(unsigned long bytes);
         unsigned int convert_to_Mb(unsigned long Kb);
-        unsigned int calculate_mem_used_percent(unsigned long memmory);
+        unsigned int calculate_mem_used_percent(unsigned int process_id);
+
+        std::string get_process_name(unsigned int process_id);
     };
 }
 

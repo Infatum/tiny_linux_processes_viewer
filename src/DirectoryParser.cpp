@@ -40,7 +40,11 @@ namespace linux_process_viewer {
 
         for (int i = 0; i < _pids.size(); ++i) {
             strcpy(state, processManager.get_process_Status(_pids[i]));
-            std::cout << "\nProcess: \tPID:" << _pids[i] << "\t\tState: " << state << std::endl;
+            std::cout << "\nProcess:" << processManager.get_process_name(_pids[i]) << "\tPID: " << _pids[i] << "\t\tState: "
+                      << state << "\t\t\tMemmory used: " << processManager.calculate_mem_used_percent(_pids[i]) << " %" << '\n';
+            //TODO: Realize PID table instance
+            //_processes_table = new PID_Table( state[i])
+
         }
         std::cout << std::endl;
     }
@@ -59,6 +63,7 @@ namespace linux_process_viewer {
 
     DirectoryParser::~DirectoryParser()
     {
+        delete _processes_table;
         _root_dir_name.clear();
     }
 }
