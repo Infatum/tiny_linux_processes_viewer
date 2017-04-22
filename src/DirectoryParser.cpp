@@ -43,8 +43,6 @@ namespace linux_process_viewer {
             std::cout << "\nProcess: \tPID:" << _pids[i] << "\t\tState: " << state << std::endl;
         }
         std::cout << std::endl;
-        std::cout << "\nTottal CPU usage: " << processManager.calculateTotalCpu_usage() << std::endl;
-        std::cout << "\nProcess 9428 CPU usage: " << processManager.getProcess_CPU_usage(9428) << std::endl;
     }
 
 

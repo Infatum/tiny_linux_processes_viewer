@@ -12,7 +12,12 @@
 #include <string.h>
 #include <sys/times.h>
 #include <sys/vtimes.h>
+#include <atomic>
+#include <thread>
+#include <iostream>
+#include <chrono>
 #include "Directories.h"
+#include "PID_Table.h"
 
 namespace linux_process_viewer {
 
@@ -22,9 +27,10 @@ namespace linux_process_viewer {
         static unsigned long long _lastTotalUserLow;
         static unsigned long long _lastTotalSys;
         static unsigned long long _lastTotalIdle;
-        static unsigned int _PID;
+        static unsigned int _processorsCount;
         static clock_t _lastCPU, _lastSysCPU, _lastUserCPU;
         void initialize_process_info(unsigned int pid);
+        void refresh(std::chrono::seconds &seconds, PID_Table &);
 
     public:
         Process_manager();
@@ -33,6 +39,8 @@ namespace linux_process_viewer {
         char* get_process_Status(unsigned int process_id);
         unsigned long get_mem_used(unsigned int process_id);
         unsigned int convert_to_Kb(unsigned long bytes);
+        unsigned int convert_to_Mb(unsigned long Kb);
+        unsigned int calculate_mem_used_percent(unsigned long memmory);
     };
 }
 

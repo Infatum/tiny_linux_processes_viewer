@@ -3,7 +3,7 @@
 //
 
 #include "Process_manager.h"
-#include <iostream>
+#include "PID_Table.h"
 
 namespace linux_process_viewer {
 
@@ -11,7 +11,7 @@ namespace linux_process_viewer {
     unsigned long long Process_manager::_lastTotalUserLow;
     unsigned long long Process_manager::_lastTotalSys;
     unsigned long long Process_manager::_lastTotalIdle;
-    unsigned int Process_manager::_PID;
+    unsigned int Process_manager::_processorsCount;
     clock_t Process_manager::_lastCPU, Process_manager::_lastSysCPU, Process_manager::_lastUserCPU;
 
     Process_manager::Process_manager()
@@ -56,6 +56,7 @@ namespace linux_process_viewer {
         initialize_process_info(process_id);
     }
 
+
     void Process_manager::initialize_process_info(unsigned int pid)
     {
         FILE* file;
@@ -67,9 +68,9 @@ namespace linux_process_viewer {
         _lastUserCPU = timeSample.tms_utime;
 
         file = fopen("/proc/cpuinfo", "r");
-        _PID = 0;
+        _processorsCount = 0;
         while(fgets(line, 128, file) != NULL){
-            if (strncmp(line, "processor", 9) == 0) _PID++;
+            if (strncmp(line, "processor", 9) == 0) _processorsCount++;
         }
         fclose(file);
     }
@@ -95,6 +96,17 @@ namespace linux_process_viewer {
         return state;
     }
 
+    unsigned int Process_manager::calculate_mem_used_percent(long unsigned memmory)
+    {
+        double one_percent_kb;
+        unsigned long full_mem_capacity;
+        FILE *mem_info = fopen("/proc/meminfo", "r");
+        if (mem_info != nullptr)
+            fscanf(mem_info, "%s %d %s", full_mem_capacity);
+        one_percent_kb = full_mem_capacity / 100;
+        return memmory / one_percent_kb;
+    }
+
     long unsigned int Process_manager::get_mem_used(unsigned int process_id)
     {
         long unsigned int mem;
@@ -113,7 +125,19 @@ namespace linux_process_viewer {
     {
         return bytes / 1024;
     }
+
+    unsigned int Process_manager::convert_to_Mb(long unsigned Kb)
+    {
+        return  Kb / 1024;
+    }
+
+    void Process_manager::refresh(std::chrono::seconds &seconds, PID_Table &proc_table)
+    {
+        auto start = std::chrono::high_resolution_clock::now();
+        auto end = start + seconds;
+        do {
+            std::this_thread::yield();
+        } while (std::chrono::system_clock::now() < end);
+
+    }
 }
-
-
-
