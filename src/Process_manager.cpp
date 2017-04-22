@@ -143,6 +143,8 @@ namespace linux_process_viewer {
             fscanf(process_stat_f, "%*d %s", name);
         }
         std::string proc_name(name);
+        proc_name.erase(0,1); //erase "("
+        proc_name.erase(proc_name.length() - 1, proc_name.length()); //erase ")"
         delete name;
         return proc_name;
     }
