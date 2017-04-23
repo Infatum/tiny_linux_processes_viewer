@@ -1,11 +1,11 @@
-#include "src/DirectoryParser.h"
+#include "src/ProcessesStatisticsManager.h"
 static const std::string root = "/proc";
 
 
 int main() {
-    linux_process_viewer::DirectoryParser p(root);
+    linux_process_viewer::ProcessesStatisticsManager p(root);
     auto v = p.get_directories_names();
-    p.process_files(v);
+    p.show_proc_info(v);
     return 0;
 }
 

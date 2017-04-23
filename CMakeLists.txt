@@ -6,7 +6,7 @@ include_directories( ${Boost_INCLUDE_DIRS} )
 
 set(CMAKE_CXX_STANDARD 14)
 
-set(SOURCE_FILES main.cpp src/DirectoryParser.cpp src/DirectoryParser.h src/PID_Table.h
-        src/Process_manager.h src/Process_manager.cpp src/Directories.h)
+set(SOURCE_FILES main.cpp src/ProcessesStatisticsManager.cpp src/ProcessesStatisticsManager.h src/PID_Table.h
+        src/Process_manager.h src/Process_manager.cpp src/Directories.h src/PID_Table.cpp)
 add_executable(linux_process_viewer ${SOURCE_FILES})
 target_link_libraries(linux_process_viewer ${Boost_LIBRARIES})

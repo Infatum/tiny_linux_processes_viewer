@@ -37,7 +37,6 @@ namespace linux_process_viewer {
         static unsigned long long _lastTotalIdle;
         static unsigned int _processorsCount;
         static unsigned long long _physicallMemmoryCapacity;
-        void refresh(std::chrono::seconds &seconds);
         void init_system_res_info();
         std::vector<long long int> get_total_CPU_idle();
 
@@ -50,7 +49,7 @@ namespace linux_process_viewer {
         unsigned int calculate_memm_used_by_process(unsigned int process_id);
         std::string get_process_name(unsigned int process_id);
         std::vector<float> get_total_CPU_usage(unsigned int interval_seconds);
-
+        unsigned int calculate_CPU_used_by_process(unsigned process_id, unsigned seconds_interval);
     };
 }
 

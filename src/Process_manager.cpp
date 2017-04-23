@@ -26,6 +26,7 @@ namespace linux_process_viewer {
         file = fopen("/proc/meminfo", "r");
         if (file != nullptr)
             fscanf(file, "%*s %lu %*s", &_physicallMemmoryCapacity);
+        fclose(file);
     }
 
     /**
@@ -34,20 +35,15 @@ namespace linux_process_viewer {
      */
     std::vector<long long> Process_manager::get_total_CPU_idle()
     {
-        std::ifstream in( "/proc/stat" );
+        std::ifstream in("/proc/stat");
         std::vector<long long> result;
-
-        //TODO: Rewrite to generic version, 'cause this might broke if there are not 11 columns in /proc/stat.
+        //TODO: Rewrite to generic version, 'cause this might broke if there are not 10 columns in /proc/stat.
         regex reg("cpu(\\d+) (\\d+) (\\d+) (\\d+) (\\d+) (\\d+) (\\d+) (\\d+) (\\d+) (\\d+) (\\d+)");
-
         std::string line;
-        while ( std::getline(in, line) ) {
-
+        while (std::getline(in, line)) {
             smatch match;
-            if ( boost::regex_match( line, match, reg ) ) {
-
+            if (boost::regex_match(line, match, reg )) {
                 long long idle_time = lexical_cast<long long>(match[5]);
-
                 result.push_back(idle_time);
             }
         }
@@ -61,7 +57,7 @@ namespace linux_process_viewer {
      */
     std::vector<float> Process_manager::get_total_CPU_usage(unsigned interval_seconds)
     {
-        posix_time::ptime current_time_1 = date_time::microsec_clock<posix_time::ptime>::universal_time();
+        auto current_time_1 = date_time::microsec_clock<posix_time::ptime>::universal_time();
         std::vector<long long> idle_time_1 = get_total_CPU_idle();
 
         sleep(interval_seconds);
@@ -71,18 +67,41 @@ namespace linux_process_viewer {
 
         //Time measuring
         const float total_seconds_elpased = float((current_time_2 - current_time_1).total_milliseconds()) / 1000.f;
-
         std::vector<float> cpu_loads;
 
         for ( unsigned i = 0; i < idle_time_1.size(); ++i ) {
-
             float idle_diff = float(idle_time_2[i] - idle_time_1[i]);
             idle_diff /= total_seconds_elpased; // Get diff per one second
             const float load = 100.f - idle_diff; // "Convert" idle to load
-            cpu_loads.push_back( load );
-
+            cpu_loads.push_back(load);
         }
         return cpu_loads;
+    }
+
+    unsigned Process_manager::calculate_CPU_used_by_process(unsigned int process_id, unsigned int interval_seconds)
+    {
+        std::string process_filename(BASE_PROC_PATH);
+        process_filename += std::to_string(process_id);
+        process_filename += BASE_CPU_FILE;
+        auto curr_time1 = date_time::microsec_clock<posix_time::ptime>::universal_time();
+
+        FILE *proc_f = fopen(process_filename.c_str(), "r");
+        unsigned long utime, stime;
+        sleep(interval_seconds);
+
+        auto curr_time2 = date_time::microsec_clock<posix_time::ptime>::universal_time();
+        //Time measuring
+        auto total_millisecs_elpased = (curr_time2 - curr_time1).total_milliseconds();
+        float one_percent = 0.0;
+        float process_percent = 0.0;
+
+        if (proc_f != nullptr) {
+            fscanf(proc_f, "%*d %*s %*c %*d %*d %*d %*d %*d %*u %*lu %*lu %*lu %*lu %lu %lu", &utime, &stime);
+            one_percent = total_millisecs_elpased / 100;
+            process_percent = (utime + stime) / one_percent;
+        }
+        fclose(proc_f);
+        return process_percent;
     }
 
     char* Process_manager::get_process_Status(unsigned int process_id)
@@ -163,20 +182,5 @@ namespace linux_process_viewer {
         proc_name.erase(proc_name.length() - 1, proc_name.length()); //erase ")"
         delete name;
         return proc_name;
-    }
-
-    /**
-     * TODO: refresh procedure table instance each n seconds
-     * @param seconds
-     * @param proc_table
-     */
-    void Process_manager::refresh(std::chrono::seconds &seconds)
-    {
-        auto start = std::chrono::high_resolution_clock::now();
-        auto end = start + seconds;
-        do {
-            std::this_thread::yield();
-        } while (std::chrono::system_clock::now() < end);
-
     }
 }
