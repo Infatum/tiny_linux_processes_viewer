@@ -17,11 +17,18 @@
 #include <iostream>
 #include <chrono>
 #include <math.h>
+#include <unistd.h>
+#include <vector>
+#include <algorithm>
+#include <boost/lexical_cast.hpp>
+#include <boost/regex.hpp>
+#include <boost/date_time.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
 #include "Directories.h"
 #include "PID_Table.h"
 
 namespace linux_process_viewer {
-
+    using namespace boost;
     class Process_manager {
     private:
         static unsigned long long _lastTotalUser;
@@ -30,21 +37,20 @@ namespace linux_process_viewer {
         static unsigned long long _lastTotalIdle;
         static unsigned int _processorsCount;
         static unsigned long long _physicallMemmoryCapacity;
-        static clock_t _lastCPU, _lastSysCPU, _lastUserCPU;
-        void initialize_process_info(unsigned int pid);
-        void refresh(std::chrono::seconds &seconds, PID_Table &);
+        void refresh(std::chrono::seconds &seconds);
+        void init_system_res_info();
+        std::vector<long long int> get_total_CPU_idle();
 
     public:
         Process_manager();
-        double calculateTotalCpu_usage();
-        double getProcess_CPU_usage(unsigned int process_id);
         char* get_process_Status(unsigned int process_id);
         unsigned long get_mem_used(unsigned int process_id);
         unsigned int convert_to_Kb(unsigned long bytes);
         unsigned int convert_to_Mb(unsigned long Kb);
-        unsigned int calculate_mem_used_percent(unsigned int process_id);
-
+        unsigned int calculate_memm_used_by_process(unsigned int process_id);
         std::string get_process_name(unsigned int process_id);
+        std::vector<float> get_total_CPU_usage(unsigned int interval_seconds);
+
     };
 }
 

@@ -41,7 +41,11 @@ namespace linux_process_viewer {
         for (int i = 0; i < _pids.size(); ++i) {
             strcpy(state, processManager.get_process_Status(_pids[i]));
             std::cout << "\nProcess: " << processManager.get_process_name(_pids[i]) << "\tPID: " << _pids[i] << "\t\tState: "
-                      << state << "\t\t\tMemmory used: " << processManager.calculate_mem_used_percent(_pids[i]) << " %" << '\n';
+                      << state << "\t\t\tMemmory used: " << processManager.calculate_memm_used_by_process(_pids[i]) << " %";
+            auto core_usage = processManager.get_total_CPU_usage(2);
+            for (int j = 0; j < core_usage.size(); ++j) {
+                std::cout << "  CPU: " << core_usage[i] << "%";
+            }
             //TODO: Realize PID table instance
             //_processes_table = new PID_Table( state[i])
 

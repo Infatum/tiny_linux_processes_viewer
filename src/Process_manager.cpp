@@ -3,7 +3,6 @@
 //
 
 #include "Process_manager.h"
-#include "PID_Table.h"
 
 namespace linux_process_viewer {
 
@@ -13,9 +12,13 @@ namespace linux_process_viewer {
     unsigned long long Process_manager::_lastTotalIdle;
     unsigned long long Process_manager::_physicallMemmoryCapacity;
     unsigned int Process_manager::_processorsCount;
-    clock_t Process_manager::_lastCPU, Process_manager::_lastSysCPU, Process_manager::_lastUserCPU;
 
     Process_manager::Process_manager()
+    {
+        init_system_res_info();
+    }
+
+    void Process_manager::init_system_res_info()
     {
         FILE *file = fopen("/proc/stat", "r");
         fscanf(file, "cpu %llu %llu %llu %llu", &_lastTotalUser, &_lastTotalUserLow, &_lastTotalSys, &_lastTotalIdle);
@@ -25,58 +28,61 @@ namespace linux_process_viewer {
             fscanf(file, "%*s %lu %*s", &_physicallMemmoryCapacity);
     }
 
-    double Process_manager::calculateTotalCpu_usage() {
-        double percent;
-        FILE *file;
-        unsigned long long totalUser, totalUserLow, totalSys, totalIdle, total;
+    /**
+     * Reads /proc/stat and returns the idle time for each CPU core in a vector
+     * @return idle time for each CPU core
+     */
+    std::vector<long long> Process_manager::get_total_CPU_idle()
+    {
+        std::ifstream in( "/proc/stat" );
+        std::vector<long long> result;
 
-        file = fopen("/proc/stat", "r");
-        fscanf(file, "cpu %llu %llu %llu %llu", &totalUser, &totalUserLow,
-               &totalSys, &totalIdle);
-        fclose(file);
+        //TODO: Rewrite to generic version, 'cause this might broke if there are not 11 columns in /proc/stat.
+        regex reg("cpu(\\d+) (\\d+) (\\d+) (\\d+) (\\d+) (\\d+) (\\d+) (\\d+) (\\d+) (\\d+) (\\d+)");
 
-        if (totalUser < _lastTotalUser || totalUserLow < _lastTotalUserLow ||
-            totalSys < _lastTotalSys || totalIdle < _lastTotalIdle) {
-            //Overflow detection. Just skip this value.
-            percent = -1.0;
-        } else {
-            total = (totalUser - _lastTotalUser) + (totalUserLow - _lastTotalUserLow) +
-                    (totalSys - _lastTotalSys);
-            percent = total;
-            total += (totalIdle - _lastTotalIdle);
-            percent /= total;
-            percent *= 100;
+        std::string line;
+        while ( std::getline(in, line) ) {
+
+            smatch match;
+            if ( boost::regex_match( line, match, reg ) ) {
+
+                long long idle_time = lexical_cast<long long>(match[5]);
+
+                result.push_back(idle_time);
+            }
         }
-        _lastTotalUser = totalUser;
-        _lastTotalUserLow = totalUserLow;
-        _lastTotalSys = totalSys;
-        _lastTotalIdle = totalIdle;
-
-        return percent;
+        return result;
     }
 
-    double Process_manager::getProcess_CPU_usage(unsigned int process_id)
+    /**
+     * Calculate the avarage CPU load % in the next interval_seconds for each CPU core
+     * @param time interval in seconds
+     * @return avarage CPU load % during certain time interval
+     */
+    std::vector<float> Process_manager::get_total_CPU_usage(unsigned interval_seconds)
     {
-        initialize_process_info(process_id);
-    }
+        posix_time::ptime current_time_1 = date_time::microsec_clock<posix_time::ptime>::universal_time();
+        std::vector<long long> idle_time_1 = get_total_CPU_idle();
 
+        sleep(interval_seconds);
 
-    void Process_manager::initialize_process_info(unsigned int pid)
-    {
-        FILE* file;
-        struct tms timeSample;
-        char line[128];
+        auto current_time_2 = date_time::microsec_clock<posix_time::ptime>::universal_time();
+        std::vector<long long> idle_time_2 = get_total_CPU_idle();
 
-        _lastCPU = times(&timeSample);
-        _lastSysCPU = timeSample.tms_stime;
-        _lastUserCPU = timeSample.tms_utime;
+        //Time measuring
+        const float total_seconds_elpased = float((current_time_2 - current_time_1).total_milliseconds()) / 1000.f;
 
-        file = fopen("/proc/cpuinfo", "r");
-        _processorsCount = 0;
-        while(fgets(line, 128, file) != NULL){
-            if (strncmp(line, "processor", 9) == 0) _processorsCount++;
+        std::vector<float> cpu_loads;
+
+        for ( unsigned i = 0; i < idle_time_1.size(); ++i ) {
+
+            float idle_diff = float(idle_time_2[i] - idle_time_1[i]);
+            idle_diff /= total_seconds_elpased; // Get diff per one second
+            const float load = 100.f - idle_diff; // "Convert" idle to load
+            cpu_loads.push_back( load );
+
         }
-        fclose(file);
+        return cpu_loads;
     }
 
     char* Process_manager::get_process_Status(unsigned int process_id)
@@ -100,7 +106,12 @@ namespace linux_process_viewer {
         return state;
     }
 
-    unsigned int Process_manager::calculate_mem_used_percent(unsigned int process_id)
+    /**
+     * Calculates % of memmory used by a certain process
+     * @param process_id
+     * @return percent of memmory used by process with the certain proccess id
+     */
+    unsigned int Process_manager::calculate_memm_used_by_process(unsigned int process_id)
     {
         double one_percent_kb = 0;
         one_percent_kb = _physicallMemmoryCapacity / 100;
@@ -108,6 +119,11 @@ namespace linux_process_viewer {
         return round(tmp_p);
     }
 
+    /**
+     * Get full memmory used by a certain process in Kb
+     * @param process_id
+     * @return memmory used by process in kb
+     */
     long unsigned int Process_manager::get_mem_used(unsigned int process_id)
     {
         long unsigned int mem;
@@ -154,7 +170,7 @@ namespace linux_process_viewer {
      * @param seconds
      * @param proc_table
      */
-    void Process_manager::refresh(std::chrono::seconds &seconds, PID_Table &proc_table)
+    void Process_manager::refresh(std::chrono::seconds &seconds)
     {
         auto start = std::chrono::high_resolution_clock::now();
         auto end = start + seconds;
