@@ -6,7 +6,7 @@ Super tiny process viewer for Linux.
 
 # Build
 
-Before begin, please, install `cmake` and run:
+Before starting, please, install `cmake` and run:
 
 ```
 cd <PROJECT_DIR>
