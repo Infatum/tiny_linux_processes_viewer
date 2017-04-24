@@ -38,18 +38,17 @@ namespace linux_process_viewer {
         static unsigned int _processorsCount;
         static unsigned long long _physicallMemmoryCapacity;
         void init_system_res_info();
-        std::vector<long long int> get_total_CPU_idle();
+        void set_CPU_idle(PID_Table *pid);
 
     public:
+
         Process_manager();
-        char* get_process_Status(unsigned int process_id);
+        void set_process_status(unsigned int process_id, PID_Table *pid);
         unsigned long get_mem_used(unsigned int process_id);
-        unsigned int convert_to_Kb(unsigned long bytes);
-        unsigned int convert_to_Mb(unsigned long Kb);
-        unsigned int calculate_memm_used_by_process(unsigned int process_id);
-        std::string get_process_name(unsigned int process_id);
-        std::vector<float> get_total_CPU_usage(unsigned int interval_seconds);
-        unsigned int calculate_CPU_used_by_process(unsigned process_id, unsigned seconds_interval);
+        void set_memmory_used_percentage(unsigned process_id, PID_Table *);
+        void set_process_name(unsigned process_id, PID_Table *);
+        void set_CPU_time_usage(unsigned process_id, PID_Table *);
+        void set_pid(unsigned int process_id, PID_Table *pid);
     };
 }
 
