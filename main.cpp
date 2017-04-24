@@ -20,10 +20,14 @@ int main(int argc, const char *argv[]) {
                 flag = SORT_PID_FLAG;
                 break;
         }
+    } else {
+        printf("Usage: %s --sort (p|c|m|s)", argv[0]);
+        printf("\n p - PID\n c - CPU\n m - MEM\n s - STATE\n");
+        return 1;
     }
     linux_process_viewer::ProcessesStatisticsManager p(root);
     auto v = p.update_pids();
-    p.show_proc_info(v, 1);
+    p.show_proc_info(v, 10);
     return 0;
 }
 
