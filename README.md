@@ -2,6 +2,7 @@
 
 Super tiny process viewer for Linux.
 
+![screenshot](https://raw.githubusercontent.com/Infatum/tiny_linux_processes_viewer/master/photo_2017-04-24_07-50-00.jpg)
 
 # Build
 
