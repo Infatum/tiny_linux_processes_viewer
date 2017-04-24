@@ -16,4 +16,4 @@ make -j2
 ./linux_process_viewer
 ```
 
-P.S. Don't forget to pass sorting flags `linux_process_viewer --sort c` ;)
+P.S. Don't forget to pass sorting flags, for example `linux_process_viewer --sort c` ;)
